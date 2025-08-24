@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { ChatInput, ChatInputTextArea, ChatInputSubmit } from "@/components/ui/chat-input"
 import { ChatMessage } from "@/components/chat-message"
 import { SuggestionPills } from "@/components/suggestion-pills"
-import { Sparkles, Plus, X } from "lucide-react"
+import { Sparkles, Plus, X, LogIn, LogOut } from "lucide-react"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -400,16 +400,16 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Image src="/favicon.ico" alt="puter logo" width={24} height={24} className="w-6 h-6" />
-            <span className="text-lg font-semibold">puter</span>
+        <div className="flex items-center justify-end sm:justify-between px-3 sm:px-6 py-3 sm:py-4">
+          <div className="hidden sm:flex items-center gap-2">
+            <Image src="/placeholder-logo.svg" alt="logo" width={24} height={24} className="w-6 h-6" />
+            <span className="hidden sm:inline text-lg font-semibold">puter</span>
           </div>
           {/* Выбор модели и вход */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Модель</span>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <span className="hidden sm:inline text-sm text-muted-foreground">Модель</span>
             <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v)}>
-              <SelectTrigger size="sm" className="min-w-[220px]">
+              <SelectTrigger size="sm" className="text-xs sm:text-sm w-[40vw] min-w-[120px] sm:w-auto sm:min-w-[220px]">
                 <SelectValue placeholder="Выберите модель" />
               </SelectTrigger>
               <SelectContent>
@@ -427,8 +427,33 @@ export default function Home() {
               onClick={newChat}
               aria-label="Новый чат"
               title="Новый чат"
+              className="shrink-0"
             >
               <Plus className="w-4 h-4" />
+            </Button>
+            {/* Auth button: icon on mobile, text on larger screens */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={async () => {
+                const puter = (typeof window !== "undefined" ? (window as any).puter : undefined)
+                if (!puter?.auth) return
+                try {
+                  if (signedIn && puter.auth.signOut) {
+                    await puter.auth.signOut()
+                    setSignedIn(false)
+                  } else if (!signedIn && puter.auth.signIn) {
+                    await puter.auth.signIn()
+                    const v = puter.auth.isSignedIn ? puter.auth.isSignedIn() : true
+                    setSignedIn(Boolean(v))
+                  }
+                } catch {}
+              }}
+              className="sm:hidden shrink-0"
+              aria-label={signedIn ? "Выйти" : "Войти"}
+              title={signedIn ? "Выйти" : "Войти"}
+            >
+              {signedIn ? <LogOut className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
             </Button>
             <Button
               variant="outline"
@@ -447,6 +472,7 @@ export default function Home() {
                   }
                 } catch {}
               }}
+              className="hidden sm:inline-flex shrink-0"
             >
               {signedIn ? "Выйти" : "Войти"}
             </Button>
